@@ -175,10 +175,9 @@ class Client
      *
      * @return \Drip\ResponseInterface
      */
-    public function fetch_subscribers()
+    public function fetch_subscribers($params)
     {
-
-        return $this->make_request("$this->account_id/subscribers");
+        return $this->make_request("$this->account_id/subscribers", $params);
     }
 
     /**
@@ -229,6 +228,16 @@ class Client
 
         $subscriber_id = urlencode($subscriber_id);
         return $this->make_request("$this->account_id/subscribers/$subscriber_id/unsubscribe", $params, self::POST);
+    }
+
+    /**
+     * Returns a list of tags
+     *
+     * @return \Drip\ResponseInterface
+     */
+    public function fetch_tags()
+    {
+        return $this->make_request("$this->account_id/tags");
     }
 
     /**

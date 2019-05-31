@@ -7,6 +7,7 @@ use Drip\Exception\InvalidArgumentException;
 use Drip\Exception\InvalidApiTokenException;
 use Drip\Exception\InvalidAccountIdException;
 use Drip\Exception\UnexpectedHttpVerbException;
+use GuzzleHttp\Psr7\Request;
 
 /**
  * Drip API
@@ -357,7 +358,7 @@ class Client
                 'Content-Type' => 'application/vnd.api+json',
                 'Authorization' => 'Bearer ' . $this->api_token,
             ],
-            'http_errors' => false,
+            'http_errors' => true,
         ];
 
         switch ($req_method) {
@@ -378,9 +379,7 @@ class Client
                 // @codeCoverageIgnoreEnd
         }
 
-        $res = $client->request($req_method, $url, $req_params);
-
-        $success_klass = $this->is_success_response($res->getStatusCode()) ? \Drip\SuccessResponse::class : \Drip\ErrorResponse::class;
-        return new $success_klass($url, $params, $res);
+        $response = $client->request($req_method, $url, $req_params);
+        return json_decode($response->getBody()->getContents(), true);
     }
 }

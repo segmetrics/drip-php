@@ -349,13 +349,13 @@ class Client
         ]);
 
         $req_params = [
-            'auth' => [$this->api_token, ''],
             'timeout' => $this->timeout,
             'connect_timeout' => $this->connect_timeout,
             'headers' => [
                 'User-Agent' => $this->user_agent(),
                 'Accept' => 'application/json, text/javascript, */*; q=0.01',
                 'Content-Type' => 'application/vnd.api+json',
+                'Authorization' => 'Bearer ' . $this->api_token,
             ],
             'http_errors' => false,
         ];

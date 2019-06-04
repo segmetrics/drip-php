@@ -307,6 +307,41 @@ class Client
     }
 
     /**
+     * Returns all existing custom fields
+     *
+     * @param array $params
+     * @return \Drip\ResponseInterface
+     */
+    public function fetch_custom_fields()
+    {
+        return $this->make_request("$this->account_id/custom_field_identifiers");
+    }
+
+    /**
+     * Returns all existing webhooks
+     *
+     * @param array $params
+     * @return \Drip\ResponseInterface
+     */
+    public function fetch_webhooks($params)
+    {
+        return $this->make_request("$this->account_id/webhooks", $params);
+    }
+
+    /**
+     * Returns info regarding a particular subscriber
+     *
+     * @param array $params
+     * @return \Drip\ResponseInterface
+     */
+    public function create_webhook($params)
+    {
+        return $this->make_request("$this->account_id/webhooks", $params, self::POST);
+    }
+
+
+
+    /**
      * @return string
      */
     protected function user_agent()

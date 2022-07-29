@@ -11,22 +11,58 @@ require_once 'GuzzleHelpers.php';
 
 final class ClientTest extends TestCase
 {
-    public function testInitializedWithApiToken()
+    public function testDeprecatedInitializedWithApiKey()
     {
         $client = new \Drip\Client("abc123", "1234");
         $this->assertInstanceOf(\Drip\Client::class, $client);
     }
 
-    public function testInvalidApiToken()
+    public function testInitializedWithAccessToken()
     {
-        $this->expectException(\Drip\Exception\InvalidApiTokenException::class);
+        $client = new \Drip\Client(["account_id" => "1234", "access_token" => "abc123"]);
+        $this->assertInstanceOf(\Drip\Client::class, $client);
+    }
+
+    public function testInitializedWithApiKey()
+    {
+        $client = new \Drip\Client(["account_id" => "1234", "api_key" => "abc123"]);
+        $this->assertInstanceOf(\Drip\Client::class, $client);
+    }
+
+    public function testDeprecatedInvalidApiKey()
+    {
+        $this->expectException(\Drip\Exception\InvalidApiKeyException::class);
         new \Drip\Client("", "1234");
+    }
+
+    public function testInvalidApiKey()
+    {
+        $this->expectException(\Drip\Exception\InvalidApiKeyException::class);
+        new \Drip\Client(["account_id" => "1234", "api_key" => ""]);
+    }
+
+    public function testInvalidAccessToken()
+    {
+        $this->expectException(\Drip\Exception\InvalidAccessTokenException::class);
+        new \Drip\Client(["account_id" => "1234", "access_token" => ""]);
+    }
+
+    public function testMissingCredentials()
+    {
+        $this->expectException(\Drip\Exception\InvalidArgumentException::class);
+        new \Drip\Client(["account_id" => "1234"]);
+    }
+
+    public function testDeprecatedInvalidAccountId()
+    {
+        $this->expectException(\Drip\Exception\InvalidAccountIdException::class);
+        new \Drip\Client("abc123", "");
     }
 
     public function testInvalidAccountId()
     {
         $this->expectException(\Drip\Exception\InvalidAccountIdException::class);
-        new \Drip\Client("abc123", "");
+        new \Drip\Client(["account_id" => "", "api_key" => "abc123"]);
     }
 
     public function testErrorResponseReturned()
@@ -232,6 +268,50 @@ final class ClientTest extends TestCase
         ]);
         $this->expectException(\Drip\Exception\InvalidArgumentException::class);
         $response = $client->fetch_subscriber([]);
+    }
+
+    // #fetch_subscriber_campaigns
+
+    public function testFetchSubscriberCampaignsById()
+    {
+        $mocked_requests = [];
+        $client = GuzzleHelpers::mocked_client($mocked_requests, [
+            new Response(200, [], '{"blah":"hello"}'),
+        ]);
+        $response = $client->fetch_subscriber_campaigns(['subscriber_id' => '1234']);
+        $this->assertTrue($response->is_success());
+        $this->assertEquals('hello', $response->get_contents()['blah']);
+
+        $this->assertCount(1, $mocked_requests);
+        $req = $mocked_requests[0]['request'];
+        $this->assertEquals('http://api.example.com/v9001/12345/subscribers/1234/campaign_subscriptions', $req->getUri());
+        $this->assertEquals('GET', $req->getMethod());
+    }
+
+    public function testFetchSubscriberCampaignsByEmail()
+    {
+        $mocked_requests = [];
+        $client = GuzzleHelpers::mocked_client($mocked_requests, [
+            new Response(200, [], '{"blah":"hello"}'),
+        ]);
+        $response = $client->fetch_subscriber_campaigns(['email' => 'test@example.com']);
+        $this->assertTrue($response->is_success());
+        $this->assertEquals('hello', $response->get_contents()['blah']);
+
+        $this->assertCount(1, $mocked_requests);
+        $req = $mocked_requests[0]['request'];
+        $this->assertEquals('http://api.example.com/v9001/12345/subscribers/test%40example.com/campaign_subscriptions', $req->getUri());
+        $this->assertEquals('GET', $req->getMethod());
+    }
+
+    public function testFetchSubscriberCampaignsWithNeitherEmailNorId()
+    {
+        $mocked_requests = [];
+        $client = GuzzleHelpers::mocked_client($mocked_requests, [
+            new Response(200, [], '{"blah":"hello"}'),
+        ]);
+        $this->expectException(\Drip\Exception\InvalidArgumentException::class);
+        $response = $client->fetch_subscriber_campaigns([]);
     }
 
     // #fetch_subscribers
